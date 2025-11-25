@@ -22,3 +22,5 @@ const errorHandler = async(err,req,res,next)=>{
    return res.status(customError.statusCode).json({ msg: customError.msg });
 
 }
+
+module.exports = errorHandler
