@@ -20,7 +20,22 @@ const register = async(req,res)=>{
 
 
 const login = async(req,res)=>{
-    res.status(200).json({msg:'Hello World from Login'})
+    const {email,password} = req.body;
+    if(!email || !password){
+        throw new CustomAPIError.BadRequestError('Email or Password Invalid')
+    }
+    const user = await UserSchema.findOne({email});
+    if(!user){
+        throw new CustomAPIError.UnauthenticatedError('Invalid Credentials')
+    }
+    const isPasswordCorrect = await user.comparePassword(password)
+    if(!isPasswordCorrect){
+        throw new CustomAPIError.BadRequestError('Password is Incorrect')
+    }
+
+    const tokenUser = {userId:user._id, user:user.name}
+    attachCookiesToResponse({res,user:tokenUser})
+    res.status(StatusCodes.OK).json({msg:'Success',user:tokenUser})
 }
 
 const logout = async(req,res)=>{

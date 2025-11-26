@@ -15,9 +15,10 @@ const errorHandler = require('./middlewares/error-hanlder')
 
 app.use(morgan('tiny'));
 app.use(express.json());
-app.use(cookieParser());
+app.use(cookieParser(process.env.JWT_SECRET));
 
 app.get('/',(req,res)=>{
+    console.log(req.signedCookies);
     res.send('API WORKING!');
 })
 
