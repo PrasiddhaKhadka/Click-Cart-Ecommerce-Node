@@ -4,15 +4,18 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cookieParser = require('cookie-parser')
 
 // DATABASE
 const connectDB = require('./db/connect')
 // MIDDLEWARES
 const notFound = require('./middlewares/not-found')
 const errorHandler = require('./middlewares/error-hanlder')
+// const authenticationMiddleware = require('./middlewares/authentication')
 
 app.use(morgan('tiny'));
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/',(req,res)=>{
     res.send('API WORKING!');
