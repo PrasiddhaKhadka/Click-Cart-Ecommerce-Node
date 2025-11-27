@@ -5,6 +5,7 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
+const cors = require('cors')
 
 // DATABASE
 const connectDB = require('./db/connect')
@@ -16,6 +17,7 @@ const errorHandler = require('./middlewares/error-hanlder')
 app.use(morgan('tiny'));
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
+app.use(cors())
 
 app.get('/',(req,res)=>{
     console.log(req.signedCookies);
@@ -25,6 +27,9 @@ app.get('/',(req,res)=>{
 // ROUTERS
 const authRouters = require('./routes/auth-routes')
 app.use('/api/v1/auth',authRouters)
+
+const userRouters = require('./routes/user-routes')
+app.use('/api/v1/user',userRouters)
 
 
 app.use(notFound)

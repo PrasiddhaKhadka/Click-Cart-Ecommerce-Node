@@ -39,7 +39,12 @@ const login = async(req,res)=>{
 }
 
 const logout = async(req,res)=>{
-    res.status(200).json({msg:'Hello World From Logging Out!'})
+    res.cookie('token','logout',{
+        httpOnly:true,
+        expiresIn:new Date(Date.now()+5 * 1000)
+
+    })
+    res.status(StatusCodes.OK).json({msg:'User Logged Out!'})
 }
 
 
