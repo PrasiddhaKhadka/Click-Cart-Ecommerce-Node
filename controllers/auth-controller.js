@@ -1,7 +1,7 @@
 const UserSchema = require('../models/User')
 const { StatusCodes } = require('http-status-codes')
 const CustomAPIError = require("../errors")
-const { isTokenValid, attachCookiesToResponse } = require('../utils')
+const { isTokenValid, attachCookiesToResponse, createTokenUser } = require('../utils')
 
 const register = async(req,res)=>{
     const {email,name,password} = req.body
@@ -11,8 +11,13 @@ const register = async(req,res)=>{
         throw new CustomAPIError.BadRequestError("Email Already Exists")
     }
 
-    const user = await UserSchema.create({name, email,password})
-    const tokenUser = {user: name, user_id:user._id}
+      // first registered user is an admin
+    const isFirstAccount = (await UserSchema.countDocuments({})) === 0;
+    const role = isFirstAccount ? 'admin' : 'user';
+
+
+    const user = await UserSchema.create({name, email,password, role })
+    const tokenUser = createTokenUser(user)
     attachCookiesToResponse({res,user: tokenUser});
     res.status(StatusCodes.CREATED).json({msg:'Success',user:tokenUser})
 
@@ -33,7 +38,7 @@ const login = async(req,res)=>{
         throw new CustomAPIError.BadRequestError('Password is Incorrect')
     }
 
-    const tokenUser = {userId:user._id, user:user.name}
+    const tokenUser = createTokenUser(user)
     attachCookiesToResponse({res,user:tokenUser})
     res.status(StatusCodes.OK).json({msg:'Success',user:tokenUser})
 }

@@ -1,16 +1,31 @@
-// const authenticationMiddleware = async(req,res,next)=>{
-//     const authHeader = req.headers.authorization;
-//     if(!authHeader && authHeader.startsWith('Bearer')){
-//         // throw new UnauthorizedError('Authentication Invalid')
-//     }
-//     const token = authHeader.split(' ')[1]
-//     try {
-//         const payload = await jwt.verify(token,process.env.JWT_SECRET)
+const CustomApiError = require('../errors/')
+const { isTokenValid } = require('../utils')
 
-//     } catch (error) {
-        
-//     }
-//     next()
-// }
+const authenticationMiddleware = async(req,res,next)=>{
+    const token = req.signedCookies.token;
 
-// module.exports = authenticationMiddleware;
+    if(!token){
+       throw new CustomApiError.UnauthorizedError('Authentication in Valid')
+    }
+   
+    try {
+        const {userId, user, role} = isTokenValid({ token })
+        req.user = { userId, user, role}
+        next()
+    } catch (error) {
+        console.log(error);
+       throw new CustomApiError.UnauthorizedError('Authentication is not Valid')
+    }
+}
+
+const authorizePermission = (...rest)=>{
+    return (req,res,next)=>{
+        if(!rest.includes(req.user.role)){
+            throw new CustomApiError.UnauthorizedError('Unauthorized user to access this route')
+            }
+        next();
+    }
+}
+
+
+module.exports = { authenticationMiddleware, authorizePermission };
