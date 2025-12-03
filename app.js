@@ -36,6 +36,8 @@ app.use('/api/v1/user',userRouters)
 const productRouters = require('./routes/product-routes')
 app.use('/api/v1/products',productRouters)
 
+const reviewRouters = require('./routes/review-routes')
+app.use('/api/v1/reviews',reviewRouters)
 
 app.use(notFound)
 app.use(errorHandler)
