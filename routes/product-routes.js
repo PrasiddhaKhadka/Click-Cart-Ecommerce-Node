@@ -9,11 +9,11 @@ const {  getProducts,
 
 const {authenticationMiddleware, authorizePermission} = require('../middlewares/authentication');
 
-router.get('/',[authenticationMiddleware,authorizePermission('admin','owner')],createProduct);
-router.post('/',getProducts);
+router.post('/',[authenticationMiddleware,authorizePermission('admin','owner')],createProduct);
+router.get('/',getProducts);
 router.get('/:id',getProductDetails);
-router.patch('/updateProduct',[authenticationMiddleware,authorizePermission('admin')],updateProduct);
-router.delete('/deleteProduct',[authenticationMiddleware,authorizePermission('admin')],deleteProduct);
+router.patch('/:id',[authenticationMiddleware,authorizePermission('admin')],updateProduct);
+router.delete('/:id',[authenticationMiddleware,authorizePermission('admin')],deleteProduct);
 router.post('/uploadImage',[authenticationMiddleware,authorizePermission('admin')], uploadProductImage)
 
 module.exports = router

@@ -1,35 +1,54 @@
 const Product = require('../models/Product');
 const CustomAPIError = require('../errors/')
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose');
 
 
 const getProducts = async(req,res)=>{
     const products = await Product.find({})
-    res.status(StatusCodes.OK).json({status:"Success",msg:'Hello World from Get Product',products:products});
+    res.status(StatusCodes.OK).json({status:"Success",products:products});
 }
 
-
 const getProductDetails= async(req,res)=>{
-    const product = await Product.find({_id:req.params.id});
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+        throw new CustomAPIError.NotFoundError('The product is not found or the id is invalid')
+    }
+    const product = await Product.findOne({_id:req.params.id});
     if(!product){
         throw new CustomAPIError.NotFoundError(`Product with ${req.params.id} not found!`);
     }
-    res.status(StatusCodes.OK).json({status:"Success",msg:'Hello World from Post Product'})
+    res.status(StatusCodes.OK).json({status:"Success",product:product})
 }
 
 const createProduct = async(req,res)=>{
-    const product = await Product.create(req.body)
-    res.status(200).json({msg:'Hello World!',product:product})
+    req.body.user = req.user.userId;
+    const product = await Product.create(req.body);
+    res.status(200).json({msg:'Success',product:product})
 }
 
+
 const updateProduct = async(req,res)=>{
+    const { id: productId } = req.params;
     
-    res.status(200).json({status:"Success",msg:'Hello World from Update Product'})
+    const product = await Product.findOneAndUpdate({_id:productId},req.body,{
+        new:true,
+        runValidators:true,
+    });
+    if(!product){
+        throw new CustomAPIError.NotFoundError(`No product with id: ${productId}`)
+    }
+
+    res.status(StatusCodes.OK).json({status:"Success",body:product})
 
 }
 
 const deleteProduct = async(req,res)=>{
-    res.status(200).json({status:"Success",msg:'Hello World from Delete Product'})
+    const { id: productId} = req.params;
+    const product = await Product.findByIdAndDelete({_id:productId})
+    if(!product){
+        throw new CustomAPIError.NotFoundError(`No product with id: ${productId}`)
+    }
+    res.status(StatusCodes.OK).json({status:"Success",body:product})
 }
 
 const uploadProductImage = async(req,res)=>{
