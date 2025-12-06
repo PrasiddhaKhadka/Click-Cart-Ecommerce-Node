@@ -39,6 +39,11 @@ app.use('/api/v1/products',productRouters)
 const reviewRouters = require('./routes/review-routes')
 app.use('/api/v1/reviews',reviewRouters)
 
+const orderRouters = require('./routes/order-routes')
+app.use('/api/v1/orders', orderRouters)
+
+
+// MIDDLEWARE
 app.use(notFound)
 app.use(errorHandler)
 
