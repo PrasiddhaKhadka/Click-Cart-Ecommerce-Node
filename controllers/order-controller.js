@@ -30,7 +30,7 @@ const getOrderDetails = async(req,res)=>{
     if(!orders){
         throw new CustomAPIError.NotFoundError(`No order with id : ${orderId}`)
     }
-    checkPermission(req.user, order.user)
+    checkPermission(req.user, orders.user)
     res.status(StatusCodes.OK).json({ orders, count: orders.length });
 }
 
