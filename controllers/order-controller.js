@@ -119,8 +119,23 @@ const postOrder = async(req,res)=>{
 
 
 const updateOrder = async(req,res)=>{
+    const { id: orderId} = req.params;
+    const order = await Order.findById({_id:orderId})
+    const { paymentIntentId } = req.body;
+    if(!order){
+        throw new CustomAPIError.NotFoundError(`No order with id:${order}`)
+    }
+    checkPermission(req.user,order.user);
+    
+    order.paymentIntentId = paymentIntentId;
+
+    order.status = 'paid';
+
+    await order.save();
+
     res.status(StatusCodes.OK).json({
-        msg:'Update Order Status'
+        msg:'Success',
+        order:order
     })
 }
 
