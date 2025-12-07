@@ -6,6 +6,13 @@ const { StatusCodes } = require('http-status-codes')
 
 
 
+// FAKE STRIPE API 
+const fakeStripeApi = async({amount, curreny})=>{
+    const client_secret='someRandomValue';
+    return {client_secret,amount,curreny}
+}
+
+
 const getOrders = async(req,res)=>{
     const orders = await Order.find({})
     res.status(StatusCodes.OK).json({
@@ -37,19 +44,76 @@ const getCurrentUserOrders = async(req,res)=>{
 }
 
 const postOrder = async(req,res)=>{
-    const { tax, shippingFee, subtotal, total, orderItems, status,
-        user, clientSecret, paymentIntentId
-    } = req.body;
+    const { items: cartItems, tax, shippingFee } = req.body;
 
+    if(!cartItems || cartItems.length < 1 ){
+        throw new CustomAPIError.BadRequestError(
+            "No cart items provided"
+        );
+    }
+    
+    if(!tax || !shippingFee){
+        throw new CustomAPIError.BadRequestError(
+            "Please, Provide Tax and Shipping Fee"
+        );
+    }
 
+    let orderItems = [];
+    let subTotal = 0; 
 
-    // const product = await Product.findById({
-    //     _id:
-    // })
+    for (const item of cartItems){
+       
+        const dbProduct = await Product.findById({
+            _id:item.product
+        })
+       
+        if(!dbProduct){
+            throw new CustomAPIError.NotFoundError(
+                `The product is not found ${item.product}`
+            )
+        }
+        // console.log(dbProduct)
+        const {name, image, price, _id} = dbProduct;
+        const singleOrderItem={
+            amount:item.amount,
+            name,
+            price,
+            image,
+            product:_id
+        }
 
+        // orderItems.push(singleOrderItem)
+        // 
+        orderItems = [...orderItems, singleOrderItem]
 
-    res.status(StatusCodes.OK).json({
-        msg:'Success From Post Order'
+        // Calculating the subtotal
+        subTotal += item.amount * price;
+
+    }
+
+    // CALCULATING THE TOTAL PRICE
+    const total = shippingFee + tax + subTotal;
+
+    // GETTING THE CLIENT SECRET (FAKE FUNCTION TO DEPICT THE STRIPE!)
+    const paymentIntent = await fakeStripeApi({
+        amount:total,
+        curreny:'usd'
+    })
+
+    const order = await Order.create({
+        orderItems: orderItems,
+        total: total,
+        subtotal: subTotal,
+        shippingFee: shippingFee,
+        tax: tax,
+        clientSecret:paymentIntent.client_secret,
+        user:req.user.userId
+    })
+
+    res.status(StatusCodes.CREATED).json({
+       msg:"Success",
+       order,
+       client_secret:order.client_secret
     })
 }
 
